@@ -1,0 +1,42 @@
+---
+title: "Bahrain map"
+author: "James David Smith"
+date: "22 January 2019"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "docs", output_file ="index.html") }) 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+rm(list = ls())
+
+library(sf)
+library(osmdata)
+library(tidyverse)
+library(mapview)
+```
+
+### Get spatial data from OSM
+
+```{r}
+outline <- st_read("data/country_outline.geojson", quiet = T)
+
+roads <- opq(bbox = st_bbox(outline)) %>% add_osm_feature(key = "highway", value = c("trunk", "primary", "motorway")) %>% osmdata_sf()
+roads <- roads$osm_lines
+
+buildings <- opq(bbox = st_bbox(outline)) %>% add_osm_feature(key = "building") %>% osmdata_sf()
+buildings <- buildings$osm_polygons
+```
+
+### Get census data
+
+Imported manually from [this website](http://www.geo-ref.net/ph/bhr.htm).
+
+```{r}
+population <- tibble(
+  name = c("Capital", "Muharraq", "Northern", "Southern"),
+  population = c(547983, 245994, 342315, 287434)
+)
+```
