@@ -15,16 +15,23 @@ rm(list = ls())
 library(sf)
 library(osmdata)
 library(tidyverse)
-library(mapview)
+library(rnaturalearth)
 ```
 
 ### Get spatial data from OSM
 
 ```{r}
-outline <- st_read("data/country_outline.geojson", quiet = T)
+outline   <-ne_states(country = 'bahrain', returnclass='sf') %>% 
+              select(name_en) %>% 
+              mutate(pop = c(547983, 342315, 287434, 287434, 245994),
+                     name = c('Capital', 'Northern', 'Southern', 'Southern', 'Muharraq')) %>%
+              select(pop, name)
+              aggregate(outline, by = c('name'), mean)
 
-roads <- opq(bbox = st_bbox(outline)) %>% add_osm_feature(key = "highway", value = c("trunk", "primary", "motorway")) %>% osmdata_sf()
-roads <- roads$osm_lines
+
+
+roads     <- opq(bbox = st_bbox(outline)) %>% add_osm_feature(key = "highway", value = c("trunk", "primary", "motorway")) %>% osmdata_sf()
+roads     <- roads$osm_lines
 
 buildings <- opq(bbox = st_bbox(outline)) %>% add_osm_feature(key = "building") %>% osmdata_sf()
 buildings <- buildings$osm_polygons
@@ -37,6 +44,6 @@ Imported manually from [this website](http://www.geo-ref.net/ph/bhr.htm).
 ```{r}
 population <- tibble(
   name = c("Capital", "Muharraq", "Northern", "Southern"),
-  population = c(547983, 245994, 342315, 287434)
+  population = c(, 245994, , 287434)
 )
 ```
