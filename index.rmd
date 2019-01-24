@@ -13,37 +13,40 @@ knitr::opts_chunk$set(echo = TRUE)
 rm(list = ls())
 
 library(sf)
+library(devtools)
+install_github("ropensci/osmdata")
 library(osmdata)
 library(tidyverse)
 library(rnaturalearth)
 ```
 
-### Get spatial data from OSM
+### Map code
 
-```{r}
+```{r, message=F, warning=F, fig.height=10, fig.width=8}
 outline   <-ne_states(country = 'bahrain', returnclass='sf') %>% 
               select(name_en) %>% 
               mutate(pop = c(547983, 342315, 287434, 287434, 245994),
                      name = c('Capital', 'Northern', 'Southern', 'Southern', 'Muharraq')) %>%
-              select(pop, name)
-              aggregate(outline, by = c('name'), mean)
+              select(pop, name) %>%
+              group_by(name) %>%
+              summarise(pop = mean(pop))
 
+roads     <- opq(bbox = st_bbox(outline)) %>%
+              add_osm_feature(key ='highway', value = c("trunk", "primary", "motorway"), value_exact = T) %>%
+              osmdata_sf(quiet = FALSE) %>%
+              unique_osmdata()
+roads     <-  roads$osm_lines
 
-
-roads     <- opq(bbox = st_bbox(outline)) %>% add_osm_feature(key = "highway", value = c("trunk", "primary", "motorway")) %>% osmdata_sf()
-roads     <- roads$osm_lines
-
-buildings <- opq(bbox = st_bbox(outline)) %>% add_osm_feature(key = "building") %>% osmdata_sf()
-buildings <- buildings$osm_polygons
+ggplot(outline) + 
+  geom_sf(aes(fill = as.factor(pop))) + 
+  geom_sf(data=st_intersection(roads,outline), colour= 'white') +
+  scale_fill_discrete(name = "2016 Population") +
+  coord_sf(datum = NA) +
+  theme(panel.background = element_rect(fill = 'light blue'),
+        legend.position = c(0.25, 0.15),
+        legend.background = element_rect(fill = NA),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 16))
 ```
 
-### Get census data
 
-Imported manually from [this website](http://www.geo-ref.net/ph/bhr.htm).
-
-```{r}
-population <- tibble(
-  name = c("Capital", "Muharraq", "Northern", "Southern"),
-  population = c(, 245994, , 287434)
-)
-```
