@@ -37,17 +37,10 @@ roads     <- opq(bbox = st_bbox(outline)) %>%
               unique_osmdata()
 roads     <-  roads$osm_lines
 
-buildings <- opq(bbox = st_bbox(outline)) %>%
-              add_osm_feature(key ='building') %>%
-              osmdata_sf(quiet = FALSE) %>%
-              unique_osmdata()
-buildings <-  buildings$osm_polygons
-
 ggplot(outline) + 
   geom_sf(aes(fill = as.factor(pop))) + 
   geom_sf(data=st_intersection(roads,outline), colour= 'white') +
   scale_fill_discrete(name = "2016 Population") +
-  geom_sf(data=buildings, fill= 'black', colour = NA) +
   coord_sf(datum = NA) +
   theme(panel.background = element_rect(fill = 'light blue'),
         legend.position = c(0.25, 0.15),
